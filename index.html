@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b6b57">
+<meta name="color-scheme" content="light dark">
+<title>Tozao</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Concept: une seule colonne façon téléphone. Vert profond pour la marque, orange vif pour les actions. */
+:root {
+  --bg: #f1f5f2;
+  --surface: #ffffff;
+  --fg: #10261f;
+  --muted: #5c716a;
+  --line: #d9e3de;
+  --brand: #0b6b57;
+  --accent: #e4570f;
+  --accent-fg: #ffffff;
+  --bubble-me: #0b6b57;
+  --bubble-me-fg: #ffffff;
+  --bubble-them: #ffffff;
+  --danger: #b3261e;
+  --av1: #0b6b57;
+  --av2: #b4410c;
+  --av3: #3f4fa6;
+  --av4: #8a3a7a;
+  --av5: #5b6b12;
+  --font-display: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1714;
+    --surface: #13231e;
+    --fg: #e6f0eb;
+    --muted: #8fa69d;
+    --line: #223730;
+    --brand: #3cc2a3;
+    --accent: #ff7a33;
+    --accent-fg: #1d0b02;
+    --bubble-me: #14705c;
+    --bubble-me-fg: #ffffff;
+    --bubble-them: #1b2f29;
+    --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1714;
+  --surface: #13231e;
+  --fg: #e6f0eb;
+  --muted: #8fa69d;
+  --line: #223730;
+  --brand: #3cc2a3;
+  --accent: #ff7a33;
+  --accent-fg: #1d0b02;
+  --bubble-me: #14705c;
+  --bubble-me-fg: #ffffff;
+  --bubble-them: #1b2f29;
+  --danger: #ff8a80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+.btn {
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+  padding: 14px 18px;
+  min-height: 48px;
+}
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-quiet { background: transparent; color: var(--muted); font-weight: 500; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.input {
+  width: 100%;
+  min-width: 0;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 48px;
+  font-size: 16px;
+}
+.input::placeholder { color: var(--muted); opacity: .8; }
+.phone-row { display: flex; gap: 8px; }
+.prefix {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.err { color: var(--danger); font-size: .9rem; min-height: 1.3em; }
+.hint { color: var(--muted); font-size: .9rem; }
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3.6rem, 18vw, 5rem);
+  line-height: .95;
+  letter-spacing: -.03em;
+  margin: 0;
+}
+.wordmark span { color: var(--accent); }
+.tagline { margin: 14px 0 0; color: var(--muted); max-width: 28ch; font-size: 1.1rem; }
+.boot { justify-content: center; }
+.login { justify-content: space-between; padding-block: 28px 20px; gap: 32px; }
+.login form { display: flex; flex-direction: column; gap: 16px; }
+.code-input { letter-spacing: .5em; text-align: center; font-size: 1.6rem; font-family: var(--font-display); font-weight: 700; }
+
+.bar {
+  display: flex; align-items: center; gap: 12px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--line);
+  min-height: 64px;
+}
+.bar h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; letter-spacing: -.01em; }
+.bar .grow { flex: 1; min-width: 0; }
+.icon-btn {
+  width: 44px; height: 44px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+}
+.icon-btn:hover { background: var(--surface); }
+.icon-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.avatar {
+  width: 46px; height: 46px; flex: none;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.avatar.sm { width: 40px; height: 40px; font-size: 1rem; }
+.av1 { background: var(--av1); } .av2 { background: var(--av2); } .av3 { background: var(--av3); }
+.av4 { background: var(--av4); } .av5 { background: var(--av5); }
+
+.list { flex: 1; min-height: 0; overflow-y: auto; list-style: none; margin: 0; padding: 0 0 96px; }
+.chat-row {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 4px;
+  min-height: 72px;
+}
+.chat-row:hover { background: var(--surface); }
+.chat-main { flex: 1; min-width: 0; }
+.chat-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.chat-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-time { font-size: .8rem; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+.chat-bottom { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.chat-last { color: var(--muted); font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-row.unread .chat-last { color: var(--fg); font-weight: 600; }
+.dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.empty { color: var(--muted); padding: 32px 4px; }
+.fab {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 8px;
+  border: 0; border-radius: 28px;
+  background: var(--accent); color: var(--accent-fg);
+  font-weight: 600;
+  padding: 0 20px 0 16px;
+  height: 56px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+.fab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+.form-body { padding-block: 24px; display: flex; flex-direction: column; gap: 18px; }
+
+.thread { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-block: 14px; }
+.day { align-self: center; font-size: .78rem; color: var(--muted); background: var(--surface); border-radius: 10px; padding: 3px 10px; margin-bottom: 6px; }
+.msg {
+  max-width: 82%;
+  padding: 9px 12px 6px;
+  border-radius: 18px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.msg .t { display: block; text-align: right; font-size: .7rem; opacity: .7; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.msg.me { align-self: flex-end; background: var(--bubble-me); color: var(--bubble-me-fg); border-bottom-right-radius: 6px; }
+.msg.them { align-self: flex-start; background: var(--bubble-them); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.composer {
+  display: flex; align-items: flex-end; gap: 8px;
+  padding-block: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+}
+.composer textarea {
+  flex: 1; min-width: 0;
+  resize: none;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 11px 16px;
+  max-height: 120px;
+  min-height: 48px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.send {
+  width: 48px; height: 48px; flex: none;
+  border: 0; border-radius: 50%;
+  background: var(--accent); color: var(--accent-fg);
+  display: grid; place-items: center;
+}
+.send svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.status { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.menu {
+  position: absolute; z-index: 20;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  top: calc(60px + env(safe-area-inset-top, 0px));
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.menu .who { padding: 10px 14px; color: var(--muted); font-size: .9rem; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.menu button { display: block; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 8px; padding: 12px 14px; min-height: 44px; }
+.menu button:hover { background: var(--bg); }
+
+.toast {
+  position: fixed; z-index: 30;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  background: var(--fg); color: var(--bg);
+  padding: 10px 16px; border-radius: 12px;
+  font-size: .92rem; max-width: calc(100% - 32px);
+}
+
+@media (min-width: 560px) {
+  .app { border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .msg { animation: pop .16s ease-out; }
+  @keyframes pop { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <section class="screen boot" id="scr-boot">
+    <h1 class="wordmark">Toza<span>o</span></h1>
+  </section>
+
+  <section class="screen login" id="scr-login" hidden>
+    <div>
+      <h1 class="wordmark">Toza<span>o</span></h1>
+      <p class="tagline">Discute avec tes proches, même quand le réseau est lent.</p>
+    </div>
+
+    <form id="form-phone" novalidate>
+      <div class="field">
+        <label for="in-name">Ton prénom</label>
+        <input class="input" id="in-name" type="text" autocomplete="given-name" placeholder="Awa" maxlength="30">
+      </div>
+      <div class="field">
+        <label for="in-phone">Ton numéro</label>
+        <div class="phone-row">
+          <div class="prefix" aria-hidden="true">CI +225</div>
+          <input class="input" id="in-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="07 01 23 45 67" maxlength="14">
+        </div>
+      </div>
+      <div class="err" id="err-phone" role="alert"></div>
+      <button class="btn" type="submit" id="btn-send">Recevoir le code</button>
+    </form>
+
+    <form id="form-code" novalidate hidden>
+      <div class="field">
+        <label for="in-code">Code reçu par SMS</label>
+        <input class="input code-input" id="in-code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••" maxlength="6">
+      </div>
+      <div class="hint">Code envoyé au <strong id="sms-to"></strong>.</div>
+      <div class="err" id="err-code" role="alert"></div>
+      <button class="btn" type="submit" id="btn-confirm">Entrer dans Tozao</button>
+      <button class="btn btn-quiet" type="button" id="btn-back-phone">Changer de numéro</button>
+    </form>
+  </section>
+
+  <section class="screen" id="scr-list" hidden>
+    <header class="bar">
+      <h2 class="grow">Tozao</h2>
+      <button class="icon-btn" id="btn-menu" aria-label="Menu" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+      </button>
+    </header>
+    <div class="menu" id="menu" hidden>
+      <div class="who" id="menu-who"></div>
+      <button type="button" id="btn-install" hidden>Installer Tozao</button>
+      <button type="button" id="btn-logout">Se déconnecter</button>
+    </div>
+    <ul class="list" id="list"></ul>
+    <button class="fab" id="btn-new" type="button">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Nouvelle discussion
+    </button>
+  </section>
+
+  <section class="screen" id="scr-new" hidden>
+    <header class="bar">
+      <button class="icon-btn" id="btn-new-back" aria-label="Retour">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <h2 class="grow">Nouvelle discussion</h2>
+    </header>
+    <form class="form-body" id="form-new" novalidate>
+      <div class="field">
+        <label for="new-phone">Numéro de ton contact</label>
+        <div class="phone-row">
+          <div class="prefix" aria-hidden="true">CI +225</div>
+          <input class="input" id="new-phone" type="tel" inputmode="numeric" placeholder="05 98 76 54 32" maxlength="14">
+        </div>
+      </div>
+      <div class="hint">Ton contact doit déjà être inscrit sur Tozao.</div>
+      <div class="err" id="err-new" role="alert"></div>
+      <button class="btn" type="submit" id="btn-new-go">Démarrer la discussion</button>
+    </form>
+  </section>
+
+  <section class="screen" id="scr-chat" hidden>
+    <header class="bar">
+      <button class="icon-btn" id="btn-chat-back" aria-label="Retour aux discussions">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="avatar sm" id="chat-avatar"></div>
+      <div class="grow">
+        <div class="chat-name" id="chat-name"></div>
+        <div class="status" id="chat-status"></div>
+      </div>
+    </header>
+    <div class="thread" id="thread" aria-live="polite"></div>
+    <form class="composer" id="form-msg">
+      <label for="in-msg" style="position:absolute;left:-9999px">Écrire un message</label>
+      <textarea id="in-msg" rows="1" placeholder="Écris un message" maxlength="2000"></textarea>
+      <button class="send" type="submit" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24"><path d="M5 12l14-7-5 14-2-6-7-1z"/></svg>
+      </button>
+    </form>
+  </section>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  doc, getDoc, setDoc, updateDoc, addDoc, getDocs, collection, query, where, orderBy,
+  onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_8ykGxKr28W1ztWdKC13D4I4kJWjtUwc",
+  authDomain: "tozao-660bf.firebaseapp.com",
+  projectId: "tozao-660bf",
+  storageBucket: "tozao-660bf.firebasestorage.app",
+  messagingSenderId: "450037410409",
+  appId: "1:450037410409:web:112ed8cbaee04a25ed90f8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+auth.languageCode = "fr";
+let db;
+try {
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch (e) {
+  db = getFirestore(app);
+}
+
+const $ = (s) => document.querySelector(s);
+const SCREENS = ["boot", "login", "list", "new", "chat"];
+
+let me = null;
+let chats = {};
+let currentId = null;
+let unsubChats = null;
+let unsubMsgs = null;
+let pendingProfile = null;
+let confirmation = null;
+let verifier = null;
+let deferredInstall = null;
+let listError = "";
+
+/* ---------- Utilitaires ---------- */
+function show(name) {
+  SCREENS.forEach((n) => { $("#scr-" + n).hidden = (n !== name); });
+  closeMenu();
+}
+function closeMenu() {
+  $("#menu").hidden = true;
+  $("#btn-menu").setAttribute("aria-expanded", "false");
+}
+function toast(text) {
+  const t = $("#toast");
+  t.textContent = text; t.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { t.hidden = true; }, 3500);
+}
+function two(n) { return n < 10 ? "0" + n : "" + n; }
+function ms(v) { return v && v.toMillis ? v.toMillis() : (v || 0); }
+function hhmm(t) { const d = new Date(t); return two(d.getHours()) + ":" + two(d.getMinutes()); }
+function sameDay(a, b) { return new Date(a).toDateString() === new Date(b).toDateString(); }
+function listTime(t) {
+  const now = Date.now();
+  if (sameDay(t, now)) return hhmm(t);
+  if (sameDay(t, now - 86400000)) return "Hier";
+  const d = new Date(t); return two(d.getDate()) + "/" + two(d.getMonth() + 1);
+}
+function dayLabel(t) {
+  const now = Date.now();
+  if (sameDay(t, now)) return "Aujourd'hui";
+  if (sameDay(t, now - 86400000)) return "Hier";
+  const d = new Date(t); return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear();
+}
+function digits(v) { return v.replace(/\D/g, ""); }
+function fmtPhone(v) {
+  const d = digits(v).slice(0, 10), out = [];
+  for (let i = 0; i < d.length; i += 2) out.push(d.slice(i, i + 2));
+  return out.join(" ");
+}
+function fmtFull(full) { return "+225 " + fmtPhone((full || "").replace("+225", "")); }
+function bindPhone(el) { el.addEventListener("input", () => { el.value = fmtPhone(el.value); }); }
+function initial(name) { return ((name || "?").trim()[0] || "?").toUpperCase(); }
+function avClass(name) {
+  let h = 0; const s = name || "";
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return "av" + (h % 5 + 1);
+}
+function seenGet(id) { try { return +localStorage.getItem("tozao-seen-" + id) || 0; } catch (e) { return 0; } }
+function seenSet(id, t) { try { localStorage.setItem("tozao-seen-" + id, String(t)); } catch (e) {} }
+function otherUid(c) { return (c.members || []).find((m) => m !== me.uid) || ""; }
+function otherName(c) { return (c.names && c.names[otherUid(c)]) || "Contact"; }
+function authMsg(err) {
+  const c = (err && err.code) || "";
+  if (c === "auth/invalid-phone-number") return "Numéro invalide.";
+  if (c === "auth/too-many-requests") return "Trop de tentatives. Réessaie plus tard.";
+  if (c === "auth/unauthorized-domain") return "Ce site n'est pas encore autorisé dans Firebase.";
+  if (c === "auth/network-request-failed") return "Pas de connexion. Réessaie.";
+  if (c === "auth/invalid-verification-code") return "Code incorrect.";
+  if (c === "auth/code-expired") return "Code expiré. Demande un nouveau code.";
+  if (c === "auth/quota-exceeded" || c === "auth/billing-not-enabled" || c === "auth/operation-not-allowed")
+    return "L'envoi de SMS n'est pas disponible pour ce numéro. Utilise un numéro de test.";
+  return "Une erreur est survenue (" + (c || "inconnue") + "). Réessaie.";
+}
+function getVerifier() {
+  if (!verifier) verifier = new RecaptchaVerifier(auth, "btn-send", { size: "invisible" });
+  return verifier;
+}
+function resetVerifier() {
+  try { if (verifier) verifier.clear(); } catch (e) {}
+  verifier = null;
+}
+
+/* ---------- Connexion ---------- */
+bindPhone($("#in-phone")); bindPhone($("#new-phone"));
+
+$("#form-phone").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("#in-name").value.trim();
+  const d = digits($("#in-phone").value);
+  const err = $("#err-phone"), btn = $("#btn-send");
+  if (!name) { err.textContent = "Écris ton prénom."; $("#in-name").focus(); return; }
+  if (d.length !== 10) { err.textContent = "Un numéro ivoirien a 10 chiffres."; $("#in-phone").focus(); return; }
+  err.textContent = "";
+  btn.disabled = true; btn.textContent = "Envoi du code…";
+  pendingProfile = { name: name, phone: "+225" + d };
+  try {
+    confirmation = await signInWithPhoneNumber(auth, pendingProfile.phone, getVerifier());
+    $("#sms-to").textContent = fmtPhone(d);
+    $("#form-phone").hidden = true; $("#form-code").hidden = false;
+    $("#in-code").value = ""; $("#in-code").focus();
+  } catch (error) {
+    resetVerifier();
+    pendingProfile = null;
+    err.textContent = authMsg(error);
+  } finally {
+    btn.disabled = false; btn.textContent = "Recevoir le code";
+  }
+});
+
+$("#btn-back-phone").addEventListener("click", () => {
+  resetVerifier();
+  $("#form-code").hidden = true; $("#form-phone").hidden = false;
+  $("#err-code").textContent = "";
+});
+
+$("#form-code").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const code = digits($("#in-code").value);
+  const err = $("#err-code"), btn = $("#btn-confirm");
+  if (code.length !== 6) { err.textContent = "Le code a 6 chiffres."; return; }
+  err.textContent = "";
+  btn.disabled = true; btn.textContent = "Vérification…";
+  try {
+    await confirmation.confirm(code);
+  } catch (error) {
+    err.textContent = authMsg(error);
+  } finally {
+    btn.disabled = false; btn.textContent = "Entrer dans Tozao";
+  }
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    me = null; stopListeners(); chats = {};
+    $("#form-code").hidden = true; $("#form-phone").hidden = false;
+    show("login");
+    return;
+  }
+  const ref = doc(db, "users", user.uid);
+  let data = null;
+  try {
+    const snap = await getDoc(ref);
+    data = snap.exists() ? snap.data() : null;
+    if (pendingProfile) {
+      data = { name: pendingProfile.name, phone: user.phoneNumber || pendingProfile.phone };
+      await setDoc(ref, { name: data.name, phone: data.phone, updatedAt: serverTimestamp() }, { merge: true });
+    }
+  } catch (error) {
+    if (!data) data = { name: (pendingProfile && pendingProfile.name) || "Moi", phone: user.phoneNumber || "" };
+  }
+  pendingProfile = null;
+  if (!data) { await signOut(auth); return; }
+  me = { uid: user.uid, name: data.name, phone: data.phone };
+  startApp();
+});
+
+function startApp() {
+  $("#menu-who").textContent = me.name + " · " + fmtFull(me.phone);
+  listError = "";
+  renderList();
+  show("list");
+  if (unsubChats) unsubChats();
+  const q = query(collection(db, "chats"), where("members", "array-contains", me.uid));
+  unsubChats = onSnapshot(q, (snap) => {
+    chats = {};
+    snap.forEach((d) => { chats[d.id] = Object.assign({ id: d.id }, d.data({ serverTimestamps: "estimate" })); });
+    listError = "";
+    renderList();
+  }, () => {
+    listError = "Impossible de charger les discussions. Vérifie ta connexion.";
+    renderList();
+  });
+}
+function stopListeners() {
+  if (unsubChats) { unsubChats(); unsubChats = null; }
+  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+  currentId = null;
+}
+
+/* ---------- Liste ---------- */
+function renderList() {
+  const ul = $("#list");
+  ul.textContent = "";
+  const arr = Object.values(chats).sort((a, b) => ms(b.lastAt) - ms(a.lastAt));
+  if (listError) {
+    const e = document.createElement("li"); e.className = "empty"; e.textContent = listError; ul.appendChild(e);
+  } else if (!arr.length) {
+    const e = document.createElement("li"); e.className = "empty";
+    e.textContent = "Aucune discussion pour le moment. Touche « Nouvelle discussion » et entre le numéro d'un ami inscrit sur Tozao.";
+    ul.appendChild(e);
+  }
+  arr.forEach((c) => {
+    const name = otherName(c);
+    const unread = c.lastFrom && c.lastFrom !== me.uid && ms(c.lastAt) > seenGet(c.id);
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chat-row" + (unread ? " unread" : "");
+
+    const av = document.createElement("div");
+    av.className = "avatar " + avClass(name); av.textContent = initial(name);
+
+    const main = document.createElement("div"); main.className = "chat-main";
+    const top = document.createElement("div"); top.className = "chat-top";
+    const nm = document.createElement("span"); nm.className = "chat-name"; nm.textContent = name;
+    const tm = document.createElement("span"); tm.className = "chat-time";
+    tm.textContent = c.lastAt ? listTime(ms(c.lastAt)) : "";
+    top.appendChild(nm); top.appendChild(tm);
+
+    const bot = document.createElement("div"); bot.className = "chat-bottom";
+    const last = document.createElement("span"); last.className = "chat-last";
+    last.textContent = c.lastText ? (c.lastFrom === me.uid ? "Toi : " : "") + c.lastText : "Aucun message";
+    bot.appendChild(last);
+    if (unread) {
+      const dot = document.createElement("span"); dot.className = "dot"; dot.setAttribute("aria-label", "Nouveau message");
+      bot.appendChild(dot);
+    }
+    main.appendChild(top); main.appendChild(bot);
+    b.appendChild(av); b.appendChild(main);
+    b.addEventListener("click", () => openChat(c.id));
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
+
+/* ---------- Chat ---------- */
+function renderThread(arr) {
+  const th = $("#thread");
+  th.textContent = "";
+  let lastDay = null;
+  arr.forEach((m) => {
+    const key = new Date(m.t).toDateString();
+    if (key !== lastDay) {
+      const d = document.createElement("div"); d.className = "day"; d.textContent = dayLabel(m.t);
+      th.appendChild(d); lastDay = key;
+    }
+    const el = document.createElement("div");
+    el.className = "msg " + (m.from === me.uid ? "me" : "them");
+    el.appendChild(document.createTextNode(m.text));
+    const t = document.createElement("span"); t.className = "t"; t.textContent = hhmm(m.t);
+    el.appendChild(t); th.appendChild(el);
+  });
+  th.scrollTop = th.scrollHeight;
+}
+function openChat(id) {
+  const c = chats[id]; if (!c) return;
+  currentId = id;
+  const name = otherName(c);
+  $("#chat-name").textContent = name;
+  const av = $("#chat-avatar"); av.className = "avatar sm " + avClass(name); av.textContent = initial(name);
+  const ph = c.phones && c.phones[otherUid(c)];
+  $("#chat-status").textContent = ph ? fmtFull(ph) : "";
+  $("#thread").textContent = "";
+  seenSet(id, ms(c.lastAt) || Date.now());
+  show("chat");
+  if (unsubMsgs) unsubMsgs();
+  const q = query(collection(db, "chats", id, "messages"), orderBy("at"));
+  unsubMsgs = onSnapshot(q, (snap) => {
+    const arr = [];
+    snap.forEach((d) => {
+      const m = d.data({ serverTimestamps: "estimate" });
+      arr.push({ from: m.from, text: m.text, t: ms(m.at) || Date.now() });
+    });
+    renderThread(arr);
+    if (arr.length) seenSet(id, arr[arr.length - 1].t);
+  }, () => { toast("Impossible de charger les messages."); });
+}
+function closeChat() {
+  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+  currentId = null;
+  renderList(); show("list");
+}
+function sendMsg(text) {
+  const id = currentId; if (!id) return;
+  text = text.slice(0, 2000);
+  const fail = () => toast("Message non envoyé. Vérifie ta connexion.");
+  addDoc(collection(db, "chats", id, "messages"), { from: me.uid, text: text, at: serverTimestamp() }).catch(fail);
+  updateDoc(doc(db, "chats", id), { lastText: text, lastAt: serverTimestamp(), lastFrom: me.uid }).catch(() => {});
+}
+
+$("#btn-chat-back").addEventListener("click", closeChat);
+const ta = $("#in-msg");
+function grow() { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 120) + "px"; }
+ta.addEventListener("input", grow);
+ta.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(hover: hover)").matches) {
+    e.preventDefault(); $("#form-msg").requestSubmit();
+  }
+});
+$("#form-msg").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = ta.value.trim(); if (!text) return;
+  ta.value = ""; grow(); sendMsg(text); ta.focus();
+});
+
+/* ---------- Nouvelle discussion ---------- */
+$("#btn-new").addEventListener("click", () => {
+  $("#new-phone").value = ""; $("#err-new").textContent = "";
+  show("new"); $("#new-phone").focus();
+});
+$("#btn-new-back").addEventListener("click", () => show("list"));
+$("#form-new").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const d = digits($("#new-phone").value);
+  const err = $("#err-new"), btn = $("#btn-new-go");
+  if (d.length !== 10) { err.textContent = "Un numéro ivoirien a 10 chiffres."; return; }
+  const full = "+225" + d;
+  if (full === me.phone) { err.textContent = "C'est ton propre numéro."; return; }
+  err.textContent = "";
+  btn.disabled = true; btn.textContent = "Recherche…";
+  try {
+    const res = await getDocs(query(collection(db, "users"), where("phone", "==", full)));
+    if (res.empty) { err.textContent = "Ce numéro n'est pas encore sur Tozao. Invite cette personne à s'inscrire."; return; }
+    const other = res.docs[0], od = other.data();
+    const members = [me.uid, other.id].sort();
+    const id = members.join("_");
+    const names = {}; names[me.uid] = me.name; names[other.id] = od.name;
+    const phones = {}; phones[me.uid] = me.phone; phones[other.id] = od.phone;
+    await setDoc(doc(db, "chats", id), { members: members, names: names, phones: phones }, { merge: true });
+    if (!chats[id]) chats[id] = { id: id, members: members, names: names, phones: phones };
+    openChat(id);
+  } catch (error) {
+    err.textContent = "Impossible de contacter le serveur. Vérifie ta connexion.";
+  } finally {
+    btn.disabled = false; btn.textContent = "Démarrer la discussion";
+  }
+});
+
+/* ---------- Menu, installation ---------- */
+$("#btn-menu").addEventListener("click", () => {
+  const m = $("#menu"); m.hidden = !m.hidden;
+  $("#btn-menu").setAttribute("aria-expanded", String(!m.hidden));
+});
+$("#btn-logout").addEventListener("click", async () => {
+  closeMenu();
+  try { await signOut(auth); } catch (e) { toast("Déconnexion impossible."); }
+});
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault(); deferredInstall = e; $("#btn-install").hidden = false;
+});
+$("#btn-install").addEventListener("click", async () => {
+  closeMenu();
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  try { await deferredInstall.userChoice; } catch (e) {}
+  deferredInstall = null; $("#btn-install").hidden = true;
+});
+window.addEventListener("appinstalled", () => { $("#btn-install").hidden = true; });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
